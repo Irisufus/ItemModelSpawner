@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "itemmodelspawner",
+  "version": "${version}",
+  "name": "ItemModelSpawner",
+  "description": "A mod that lets you spawn in Item Displays with an Item Model",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/itemmodelspawner/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-datagen": [
+      "me.iris.itemmodelspawner.client.ItemmodelspawnerDataGenerator"
+    ],
+    "client": [
+      "me.iris.itemmodelspawner.client.ItemmodelspawnerClient"
+    ],
+    "main": [
+      "me.iris.itemmodelspawner.Itemmodelspawner"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-language-kotlin": ">=${kotlin_loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
