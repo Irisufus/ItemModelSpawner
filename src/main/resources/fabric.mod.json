@@ -2,22 +2,22 @@
   "schemaVersion": 1,
   "id": "itemmodelspawner",
   "version": "${version}",
-  "name": "ItemModelSpawner",
+  "name": "Item Model Spawner",
   "description": "A mod that lets you spawn in Item Displays with an Item Model",
   "authors": [],
   "contact": {},
-  "license": "All-Rights-Reserved",
+  "license": "GPL-3.0-or-later",
   "icon": "assets/itemmodelspawner/icon.png",
-  "environment": "client",
+  "environment": "*",
   "entrypoints": {
     "fabric-datagen": [
-      "me.iris.itemmodelspawner.client.ItemmodelspawnerDataGenerator"
+      "me.iris.itemmodelspawner.client.ItemModelSpawnerDataGenerator"
     ],
     "client": [
-      "me.iris.itemmodelspawner.client.ItemmodelspawnerClient"
+      "me.iris.itemmodelspawner.client.ItemModelSpawnerClient"
     ],
     "main": [
-      "me.iris.itemmodelspawner.Itemmodelspawner"
+      "me.iris.itemmodelspawner.ItemModelSpawner"
     ]
   },
   "depends": {
