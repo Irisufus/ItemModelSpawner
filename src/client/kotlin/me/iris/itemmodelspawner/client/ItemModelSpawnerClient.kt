@@ -23,13 +23,13 @@ class ItemModelSpawnerClient : ClientModInitializer {
             if (menuKey.consumeClick()) {
                 val player = client.player
 
-                if (player != null && client.screen == null) {
+                if (player != null && client.gui.screen() == null) {
                     val isCreative = player.isCreative
                     val isSingleplayer = client.hasSingleplayerServer()
                     val isOp = player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)
 
                     if (isCreative && (isSingleplayer || isOp)) {
-                        client.setScreen(ModelSelectorScreen())
+                        client.gui.setScreen(ModelSelectorScreen())
                     }
                 }
             }

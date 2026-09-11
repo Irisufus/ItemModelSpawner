@@ -7,7 +7,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.core.component.DataComponents
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.world.entity.EntitySpawnReason
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.DyedItemColor
 
@@ -27,7 +27,7 @@ class ItemModelSpawner : ModInitializer {
 
                 if (isCreative && (isSingleplayer || hasOp)) {
                     val level = player.level()
-                    val display = EntityType.ITEM_DISPLAY.create(level, EntitySpawnReason.COMMAND)
+                    val display = EntityTypes.ITEM_DISPLAY.create(level, EntitySpawnReason.COMMAND)
                     val item = BuiltInRegistries.ITEM.get(payload.itemId)
 
                     if (display != null) {
