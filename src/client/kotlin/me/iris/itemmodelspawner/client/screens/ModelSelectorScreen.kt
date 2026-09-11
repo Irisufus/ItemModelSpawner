@@ -3,7 +3,7 @@ package me.iris.itemmodelspawner.client.screens
 import me.iris.itemmodelspawner.client.util.Model
 import me.iris.itemmodelspawner.messaging.DisplaySpawnPayload
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
 import net.minecraft.client.gui.components.EditBox
 import net.minecraft.client.gui.screens.Screen
@@ -135,8 +135,8 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
         return max(0, totalContentHeight - listHeight)
     }
 
-    override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick)
+    override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, partialTick: Float) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick)
 
         val maxScroll = getMaxScroll()
 
@@ -150,16 +150,16 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
         // Dye color preview swatch
         val swatchX = startX + (COLUMNS * SLOT_SIZE) / 2 + 2
         val swatchY = PADDING + 39
-        guiGraphics.fill(swatchX, swatchY, swatchX + 20, swatchY + 20, 0xFF000000.toInt())
+        graphics.fill(swatchX, swatchY, swatchX + 20, swatchY + 20, 0xFF000000.toInt())
         val previewColor = parsedColor()
         if (previewColor != DisplaySpawnPayload.NO_COLOR) {
-            guiGraphics.fill(swatchX + 1, swatchY + 1, swatchX + 19, swatchY + 19, 0xFF000000.toInt() or previewColor)
+            graphics.fill(swatchX + 1, swatchY + 1, swatchX + 19, swatchY + 19, 0xFF000000.toInt() or previewColor)
         } else {
-            guiGraphics.fill(swatchX + 1, swatchY + 1, swatchX + 19, swatchY + 19, 0xFF333333.toInt())
+            graphics.fill(swatchX + 1, swatchY + 1, swatchX + 19, swatchY + 19, 0xFF333333.toInt())
         }
 
         // Scrollbar
-        guiGraphics.fill(scrollbarX, startY, scrollbarX + 6, startY + listHeight, 0x88000000.toInt())
+        graphics.fill(scrollbarX, startY, scrollbarX + 6, startY + listHeight, 0x88000000.toInt())
 
         if (maxScroll > 0) {
             val thumbHeight = max(20, (listHeight.toFloat() / (maxScroll + listHeight) * listHeight).toInt())
@@ -168,13 +168,13 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
             val isHoveringThumb = mouseX in scrollbarX..(scrollbarX + 6) && mouseY in thumbY..(thumbY + thumbHeight)
             val thumbColor = if (draggingScrollbar || isHoveringThumb) 0xFFAAAAAA.toInt() else 0xFF888888.toInt()
 
-            guiGraphics.fill(scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, thumbColor)
+            graphics.fill(scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, thumbColor)
         }
 
         // Items
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, PADDING, 0xFFFFFF)
+        graphics.centeredText(this.font, this.title, this.width / 2, PADDING, 0xFFFFFF)
 
-        guiGraphics.enableScissor(startX, startY, startX + (COLUMNS * SLOT_SIZE), startY + listHeight)
+        graphics.enableScissor(startX, startY, startX + (COLUMNS * SLOT_SIZE), startY + listHeight)
 
         for (i in visibleItems.indices) {
             val row = i / COLUMNS
@@ -182,11 +182,11 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
             val x = startX + (col * SLOT_SIZE)
             val y = startY + (row * SLOT_SIZE) - scrollOffset
 
-            guiGraphics.fill(x, y, x + SLOT_SIZE - 2, y + SLOT_SIZE - 2, 0x33FFFFFF)
-            guiGraphics.renderItem(visibleItems[i].item, x, y)
+            graphics.fill(x, y, x + SLOT_SIZE - 2, y + SLOT_SIZE - 2, 0x33FFFFFF)
+            graphics.item(visibleItems[i].item, x, y)
         }
 
-        guiGraphics.disableScissor()
+        graphics.disableScissor()
 
         for (i in visibleItems.indices) {
             val row = i / COLUMNS
@@ -202,7 +202,7 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
                     val clientTooltip = component.map { component ->
                         ClientTooltipComponent.create(component.visualOrderText)
                     }
-                    guiGraphics.renderTooltip(font, clientTooltip, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null)
+                    graphics.tooltip(font, clientTooltip, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null)
                 }
             }
         }

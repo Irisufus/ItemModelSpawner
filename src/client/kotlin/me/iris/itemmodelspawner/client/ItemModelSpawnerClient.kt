@@ -3,7 +3,7 @@ package me.iris.itemmodelspawner.client
 import me.iris.itemmodelspawner.client.screens.ModelSelectorScreen
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.KeyMapping
 import net.minecraft.server.permissions.Permissions
 import org.lwjgl.glfw.GLFW
@@ -15,7 +15,7 @@ class ItemModelSpawnerClient : ClientModInitializer {
     }
 
     override fun onInitializeClient() {
-        menuKey = KeyBindingHelper.registerKeyBinding(
+        menuKey = KeyMappingHelper.registerKeyMapping(
             KeyMapping("Open Item Model Spawn Menu", GLFW.GLFW_KEY_V, KeyMapping.Category.CREATIVE)
         )
 

@@ -14,7 +14,7 @@ import net.minecraft.world.item.component.DyedItemColor
 class ItemModelSpawner : ModInitializer {
 
     override fun onInitialize() {
-        PayloadTypeRegistry.playC2S().register(DisplaySpawnPayload.TYPE, DisplaySpawnPayload.CODEC)
+        PayloadTypeRegistry.serverboundPlay().register(DisplaySpawnPayload.TYPE, DisplaySpawnPayload.CODEC)
 
         ServerPlayNetworking.registerGlobalReceiver(DisplaySpawnPayload.TYPE) { payload, context ->
             val player = context.player()
