@@ -32,11 +32,13 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
 
     private lateinit var searchBox: EditBox
     private lateinit var toggleButton: Button
+    private lateinit var dyeColorBox: EditBox
 
     companion object {
         private const val COLUMNS = 12
         private const val SLOT_SIZE = 18
         private const val PADDING = 10
+        private const val GRID_TOP = PADDING + 65
     }
 
     override fun init() {
@@ -49,7 +51,7 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
         val gridWidth = COLUMNS * SLOT_SIZE
         val startX = (this.width - gridWidth) / 2
 
-        searchBox = EditBox(this.font, startX, PADDING, gridWidth / 2 - 2, 20, Component.literal("Search Models"))
+        searchBox = EditBox(this.font, startX, PADDING + 15, gridWidth / 2 - 2, 20, Component.literal("Search Models"))
         searchBox.setResponder { updateFilter() }
         this.addRenderableWidget(searchBox)
 
@@ -57,10 +59,21 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
             showResourcePack = !showResourcePack
             btn.message = Component.literal(if (showResourcePack) "Resource Pack" else "All")
             updateFilter()
-        }.bounds(startX + gridWidth / 2 + 2, PADDING, gridWidth / 2 - 2, 20).build()
+        }.bounds(startX + gridWidth / 2 + 2, PADDING + 15, gridWidth / 2 - 2, 20).build()
         this.addRenderableWidget(toggleButton)
 
+        dyeColorBox = EditBox(this.font, startX, PADDING + 39, gridWidth / 2 - 2, 20, Component.literal("Dye Color"))
+        dyeColorBox.setHint(Component.literal("Dye color hex"))
+        dyeColorBox.setMaxLength(7)
+        this.addRenderableWidget(dyeColorBox)
+
         updateFilter()
+    }
+
+    private fun parsedColor(): Int {
+        val text = dyeColorBox.value.trim().removePrefix("#")
+        if (text.length != 6) return DisplaySpawnPayload.NO_COLOR
+        return text.toIntOrNull(16) ?: DisplaySpawnPayload.NO_COLOR
     }
 
     private fun updateFilter() {
@@ -115,7 +128,7 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
     }
 
     private fun getMaxScroll(): Int {
-        val startY = PADDING + 35
+        val startY = GRID_TOP
         val listHeight = this.height - startY - PADDING
         val totalRows = (visibleItems.size + COLUMNS - 1) / COLUMNS
         val totalContentHeight = totalRows * SLOT_SIZE
@@ -130,9 +143,20 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
         scrollOffset = min(maxScroll, max(0, scrollOffset))
 
         val startX = (this.width - (COLUMNS * SLOT_SIZE)) / 2
-        val startY = PADDING + 35
+        val startY = GRID_TOP
         val listHeight = this.height - startY - PADDING
         val scrollbarX = startX + (COLUMNS * SLOT_SIZE) + 5
+
+        // Dye color preview swatch
+        val swatchX = startX + (COLUMNS * SLOT_SIZE) / 2 + 2
+        val swatchY = PADDING + 39
+        guiGraphics.fill(swatchX, swatchY, swatchX + 20, swatchY + 20, 0xFF000000.toInt())
+        val previewColor = parsedColor()
+        if (previewColor != DisplaySpawnPayload.NO_COLOR) {
+            guiGraphics.fill(swatchX + 1, swatchY + 1, swatchX + 19, swatchY + 19, 0xFF000000.toInt() or previewColor)
+        } else {
+            guiGraphics.fill(swatchX + 1, swatchY + 1, swatchX + 19, swatchY + 19, 0xFF333333.toInt())
+        }
 
         // Scrollbar
         guiGraphics.fill(scrollbarX, startY, scrollbarX + 6, startY + listHeight, 0x88000000.toInt())
@@ -199,7 +223,7 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
         val mouseY = mouseButtonEvent.y
 
         val startX = (this.width - (COLUMNS * SLOT_SIZE)) / 2
-        val startY = PADDING + 25
+        val startY = GRID_TOP
         val listHeight = this.height - startY - PADDING
         val scrollbarX = startX + (COLUMNS * SLOT_SIZE) + 5
 
@@ -214,13 +238,14 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
             val x = startX + (col * SLOT_SIZE)
             val y = startY + (row * SLOT_SIZE) - scrollOffset
 
-            if (y > PADDING + 15 && y < this.height - PADDING - 20) {
+            if (y >= startY && y <= startY + listHeight - SLOT_SIZE) {
                 if (mouseX in x.toDouble()..(x + SLOT_SIZE).toDouble() && mouseY in y.toDouble()..(y + SLOT_SIZE).toDouble()) {
                     val stack = visibleItems[i]
                     val itemId = BuiltInRegistries.ITEM.getKey(stack.item.item)
+                    val dyeColor = parsedColor()
 
                     if (ClientPlayNetworking.canSend(DisplaySpawnPayload.TYPE)) {
-                        ClientPlayNetworking.send(DisplaySpawnPayload(itemId, stack.modelId))
+                        ClientPlayNetworking.send(DisplaySpawnPayload(itemId, stack.modelId, dyeColor))
                     }
                     else {
                         val player = minecraft.player!!
@@ -233,7 +258,16 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
                         val sy = String.format(java.util.Locale.US, "%.3f", y)
                         val sz = String.format(java.util.Locale.US, "%.3f", z)
 
-                        val command = "summon item_display $sx $sy $sz {item:{id:\"minecraft:paper\",count:1,components:{\"minecraft:item_model\":\"${stack.modelId}\"}}}"
+                        val dyePart: String
+                        val item: String
+                        if (dyeColor != DisplaySpawnPayload.NO_COLOR) {
+                            dyePart = ",\"minecraft:dyed_color\":$dyeColor"
+                            item = "minecraft:paper"
+                        } else {
+                            dyePart = ""
+                            item = "minecraft:leather_horse_armor"
+                        }
+                        val command = "summon item_display $sx $sy $sz {item:{id:\"$item\",count:1,components:{\"minecraft:item_model\":\"${stack.modelId}\"$dyePart}}}"
 
                         player.connection.sendCommand(command)
                     }
@@ -275,6 +309,9 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
         if (searchBox.isFocused && keyEvent.key() != GLFW.GLFW_KEY_ESCAPE) {
             return searchBox.keyPressed(keyEvent)
+        }
+        if (dyeColorBox.isFocused && keyEvent.key() != GLFW.GLFW_KEY_ESCAPE) {
+            return dyeColorBox.keyPressed(keyEvent)
         }
         return super.keyPressed(keyEvent)
     }

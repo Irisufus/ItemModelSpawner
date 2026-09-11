@@ -9,6 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.world.entity.EntitySpawnReason
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.component.DyedItemColor
 
 class ItemModelSpawner : ModInitializer {
 
@@ -37,6 +38,7 @@ class ItemModelSpawner : ModInitializer {
                         display.setPos(x, y, z)
                         val itemstack = ItemStack(item.get())
                         itemstack.set(DataComponents.ITEM_MODEL, payload.modelId)
+                        if (payload.color != DisplaySpawnPayload.NO_COLOR) itemstack.set(DataComponents.DYED_COLOR, DyedItemColor(payload.color))
                         display.itemStack = itemstack
 
                         level.addFreshEntity(display)
