@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.components.Button
 import net.minecraft.client.gui.components.EditBox
+import net.minecraft.client.gui.components.Tooltip
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner
@@ -29,10 +30,13 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
     private var scrollOffset = 0
     private var draggingScrollbar = false
     private var showResourcePack = false
+    private var currentSearch = ""
+    private var currentDyeColor = ""
 
     private lateinit var searchBox: EditBox
     private lateinit var toggleButton: Button
     private lateinit var dyeColorBox: EditBox
+    private lateinit var pickColorButton: Button
 
     companion object {
         private const val COLUMNS = 12
@@ -52,10 +56,14 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
         val startX = (this.width - gridWidth) / 2
 
         searchBox = EditBox(this.font, startX, PADDING + 15, gridWidth / 2 - 2, 20, Component.literal("Search Models"))
-        searchBox.setResponder { updateFilter() }
+        searchBox.value = currentSearch
+        searchBox.setResponder { text ->
+            currentSearch = text
+            updateFilter()
+        }
         this.addRenderableWidget(searchBox)
 
-        toggleButton = Button.builder(Component.literal("All")) { btn ->
+        toggleButton = Button.builder(Component.literal(if (showResourcePack) "Resource Pack" else "All")) { btn ->
             showResourcePack = !showResourcePack
             btn.message = Component.literal(if (showResourcePack) "Resource Pack" else "All")
             updateFilter()
@@ -65,13 +73,42 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
         dyeColorBox = EditBox(this.font, startX, PADDING + 39, gridWidth / 2 - 2, 20, Component.literal("Dye Color"))
         dyeColorBox.setHint(Component.literal("Dye color hex"))
         dyeColorBox.setMaxLength(7)
+        dyeColorBox.value = currentDyeColor
+        dyeColorBox.setResponder { text ->
+            currentDyeColor = text
+        }
         this.addRenderableWidget(dyeColorBox)
 
+        val swatchX = startX + gridWidth / 2 + 2
+        val pickBtnX = swatchX + 24
+        val pickBtnWidth = (startX + gridWidth) - pickBtnX
+        pickColorButton = Button.builder(Component.literal("Pick Color")) {
+            openColorPicker()
+        }.bounds(pickBtnX, PADDING + 39, pickBtnWidth, 20)
+            .tooltip(Tooltip.create(Component.literal("Open color picker")))
+            .build()
+        this.addRenderableWidget(pickColorButton)
+
+        val savedScroll = scrollOffset
         updateFilter()
+        scrollOffset = savedScroll
+    }
+
+    private fun openColorPicker() {
+        minecraft.setScreen(ColorPickerScreen(this, parsedColor()) { chosenColor ->
+            currentDyeColor = if (chosenColor != DisplaySpawnPayload.NO_COLOR) {
+                String.format("#%06X", chosenColor)
+            } else {
+                ""
+            }
+            if (::dyeColorBox.isInitialized) {
+                dyeColorBox.value = currentDyeColor
+            }
+        })
     }
 
     private fun parsedColor(): Int {
-        val text = dyeColorBox.value.trim().removePrefix("#")
+        val text = (if (::dyeColorBox.isInitialized) dyeColorBox.value else currentDyeColor).trim().removePrefix("#")
         if (text.length != 6) return DisplaySpawnPayload.NO_COLOR
         return text.toIntOrNull(16) ?: DisplaySpawnPayload.NO_COLOR
     }
@@ -158,6 +195,16 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
             guiGraphics.fill(swatchX + 1, swatchY + 1, swatchX + 19, swatchY + 19, 0xFF333333.toInt())
         }
 
+        if (mouseX in swatchX..(swatchX + 20) && mouseY in swatchY..(swatchY + 20)) {
+            val tooltipText = if (previewColor != DisplaySpawnPayload.NO_COLOR) {
+                "#" + String.format("%06X", previewColor) + " (Click to pick)"
+            } else {
+                "No Color (Click to pick)"
+            }
+            val clientTooltip = listOf(ClientTooltipComponent.create(Component.literal(tooltipText).visualOrderText))
+            guiGraphics.renderTooltip(font, clientTooltip, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null)
+        }
+
         // Scrollbar
         guiGraphics.fill(scrollbarX, startY, scrollbarX + 6, startY + listHeight, 0x88000000.toInt())
 
@@ -226,6 +273,13 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
         val startY = GRID_TOP
         val listHeight = this.height - startY - PADDING
         val scrollbarX = startX + (COLUMNS * SLOT_SIZE) + 5
+
+        val swatchX = startX + (COLUMNS * SLOT_SIZE) / 2 + 2
+        val swatchY = PADDING + 39
+        if (mouseX in swatchX.toDouble()..(swatchX + 20).toDouble() && mouseY in swatchY.toDouble()..(swatchY + 20).toDouble()) {
+            openColorPicker()
+            return true
+        }
 
         if (getMaxScroll() > 0 && mouseX >= scrollbarX && mouseX <= scrollbarX + 6 && mouseY >= startY && mouseY <= startY + listHeight) {
             draggingScrollbar = true
