@@ -1,12 +1,12 @@
 package me.iris.itemmodelspawner.client
 
+import com.mojang.blaze3d.platform.InputConstants
 import me.iris.itemmodelspawner.client.screens.ModelSelectorScreen
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.KeyMapping
 import net.minecraft.server.permissions.Permissions
-import org.lwjgl.glfw.GLFW
 
 class ItemModelSpawnerClient : ClientModInitializer {
 
@@ -16,7 +16,7 @@ class ItemModelSpawnerClient : ClientModInitializer {
 
     override fun onInitializeClient() {
         menuKey = KeyMappingHelper.registerKeyMapping(
-            KeyMapping("Open Item Model Spawn Menu", GLFW.GLFW_KEY_V, KeyMapping.Category.CREATIVE)
+            KeyMapping("Open Item Model Spawn Menu", InputConstants.KEY_V, KeyMapping.Category.CREATIVE)
         )
 
         ClientTickEvents.END_CLIENT_TICK.register { client ->

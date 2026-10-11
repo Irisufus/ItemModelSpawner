@@ -1,5 +1,6 @@
 package me.iris.itemmodelspawner.client.screens
 
+import com.mojang.blaze3d.platform.InputConstants
 import me.iris.itemmodelspawner.client.util.Model
 import me.iris.itemmodelspawner.messaging.DisplaySpawnPayload
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
@@ -20,7 +21,6 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.TooltipFlag
-import org.lwjgl.glfw.GLFW
 import kotlin.math.max
 import kotlin.math.min
 
@@ -202,7 +202,7 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
                 "No Color (Click to pick)"
             }
             val clientTooltip = listOf(ClientTooltipComponent.create(Component.literal(tooltipText).visualOrderText))
-            graphics.tooltip(font, clientTooltip, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null)
+            graphics.tooltip(font, clientTooltip, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null, false)
         }
 
         // Scrollbar
@@ -249,14 +249,14 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
                     val clientTooltip = component.map { component ->
                         ClientTooltipComponent.create(component.visualOrderText)
                     }
-                    graphics.tooltip(font, clientTooltip, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null)
+                    graphics.tooltip(font, clientTooltip, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null, false)
                 }
             }
         }
     }
 
     override fun mouseReleased(mouseButtonEvent: MouseButtonEvent): Boolean {
-        if (mouseButtonEvent.button() == 0) {
+        if (mouseButtonEvent.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             draggingScrollbar = false
         }
         return super.mouseReleased(mouseButtonEvent)
@@ -264,7 +264,7 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
 
     override fun mouseClicked(mouseButtonEvent: MouseButtonEvent, bl: Boolean): Boolean {
         if (super.mouseClicked(mouseButtonEvent, bl)) return true
-        if (mouseButtonEvent.button() != 0) return super.mouseClicked(mouseButtonEvent, bl)
+        if (mouseButtonEvent.button() != InputConstants.MOUSE_BUTTON_LEFT) return super.mouseClicked(mouseButtonEvent, bl)
 
         val mouseX = mouseButtonEvent.x
         val mouseY = mouseButtonEvent.y
@@ -361,10 +361,10 @@ class ModelSelectorScreen : Screen(Component.literal("Loaded Item Models")) {
     }
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
-        if (searchBox.isFocused && keyEvent.key() != GLFW.GLFW_KEY_ESCAPE) {
+        if (searchBox.isFocused && keyEvent.key() != InputConstants.KEY_ESCAPE) {
             return searchBox.keyPressed(keyEvent)
         }
-        if (dyeColorBox.isFocused && keyEvent.key() != GLFW.GLFW_KEY_ESCAPE) {
+        if (dyeColorBox.isFocused && keyEvent.key() != InputConstants.KEY_ESCAPE) {
             return dyeColorBox.keyPressed(keyEvent)
         }
         return super.keyPressed(keyEvent)

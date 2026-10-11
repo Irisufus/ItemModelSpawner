@@ -1,5 +1,6 @@
 package me.iris.itemmodelspawner.client.screens
 
+import com.mojang.blaze3d.platform.InputConstants
 import me.iris.itemmodelspawner.messaging.DisplaySpawnPayload
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
@@ -12,7 +13,6 @@ import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.DyeColor
-import org.lwjgl.glfw.GLFW
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -312,13 +312,13 @@ class ColorPickerScreen(
 
     private fun renderTextTooltip(graphics: GuiGraphicsExtractor, text: String, mouseX: Int, mouseY: Int) {
         val clientTooltip = listOf(ClientTooltipComponent.create(Component.literal(text).visualOrderText))
-        graphics.tooltip(font, clientTooltip, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null)
+        graphics.tooltip(font, clientTooltip, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null, false)
     }
 
     override fun mouseClicked(mouseButtonEvent: MouseButtonEvent, bl: Boolean): Boolean {
         if (super.mouseClicked(mouseButtonEvent, bl)) return true
 
-        if (mouseButtonEvent.button() == 0) {
+        if (mouseButtonEvent.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             val mouseX = mouseButtonEvent.x.toInt()
             val mouseY = mouseButtonEvent.y.toInt()
 
@@ -381,7 +381,7 @@ class ColorPickerScreen(
     }
 
     override fun mouseReleased(mouseButtonEvent: MouseButtonEvent): Boolean {
-        if (mouseButtonEvent.button() == 0) {
+        if (mouseButtonEvent.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             draggingSV = false
             draggingHue = false
         }
@@ -389,7 +389,7 @@ class ColorPickerScreen(
     }
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
-        if (hexInput.isFocused && keyEvent.key() != GLFW.GLFW_KEY_ESCAPE) {
+        if (hexInput.isFocused && keyEvent.key() != InputConstants.KEY_ESCAPE) {
             return hexInput.keyPressed(keyEvent)
         }
         return super.keyPressed(keyEvent)
